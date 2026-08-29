@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTTP Action Sender</title>
+  <style>
+    :root {
+      --bg: #f3f7fa;
+      --panel: #ffffff;
+      --text: #102a43;
+      --muted: #486581;
+      --border: #d9e2ec;
+      --primary: #1769aa;
+      --primary-hover: #0f4f80;
+      --card: #f8fbff;
+      --success: #1f7a1f;
+      --danger: #ba2525;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(145deg, #eef4f9, #d9e8f5);
+      color: var(--text);
+      min-height: 100vh;
+      display: block;
+      padding: 12px;
+    }
+
+    .app {
+      width: min(960px, 100%);
+      margin: 0 auto;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 10px 30px rgba(16, 42, 67, 0.15);
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.25rem;
+    }
+
+    p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    label {
+      font-size: 0.92rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: inline-block;
+    }
+
+    input, textarea, button {
+      font: inherit;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      color: var(--text);
+      background: #fff;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .row {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr;
+    }
+
+    .actions {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 1fr;
+    }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      min-height: 46px;
+      text-align: left;
+    }
+
+    button:hover {
+      background: var(--primary-hover);
+    }
+
+    button:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
+
+    .secondary {
+      background: #627d98;
+    }
+
+    .secondary:hover {
+      background: #486581;
+    }
+
+    #status {
+      font-size: 0.95rem;
+      font-weight: 600;
+      min-height: 1.3rem;
+      margin-top: 8px;
+    }
+
+    .ok {
+      color: var(--success);
+    }
+
+    .err {
+      color: var(--danger);
+    }
+
+    .response-box {
+      min-height: 180px;
+    }
+
+    .action-panel {
+      position: sticky;
+      bottom: 8px;
+      z-index: 5;
+      background: linear-gradient(180deg, rgba(248, 251, 255, 0.6), rgba(248, 251, 255, 1));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      backdrop-filter: blur(2px);
+    }
+
+    @media (min-width: 640px) {
+      body {
+        padding: 20px;
+      }
+
+      .app {
+        padding: 18px;
+      }
+
+      .row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      button {
+        text-align: center;
+      }
+    }
+
+    @media (min-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .full {
+        grid-column: 1 / -1;
+      }
+
+      .actions {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .action-panel {
+        position: static;
+        background: transparent;
+        border: 0;
+        padding: 0;
+        backdrop-filter: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>HTTP Action Sender</h1>
+    <p>Send POST requests with one click. Example base URL: http://10.0.0.202:1880</p>
+
+    <div class="layout">
+      <section class="card full">
+        <label for="baseUrl">Base URL</label>
+        <input id="baseUrl" type="text" value="http://10.0.0.202:1880" placeholder="http://10.0.0.202:1880">
+      </section>
+
+      <section class="card full row">
+        <div>
+          <label for="headerName">Auth Header Name (optional)</label>
+          <input id="headerName" type="text" value="X-API-Key" placeholder="X-API-Key">
+        </div>
+        <div>
+          <label for="headerValue">Auth Header Value (optional)</label>
+          <input id="headerValue" type="text" placeholder="your-secret">
+        </div>
+      </section>
+
+      <section class="card full">
+        <label for="bodyText">Request Body (optional JSON)</label>
+        <textarea id="bodyText" placeholder='{"source":"web"}'></textarea>
+      </section>
+
+      <section class="card full action-panel">
+        <div class="actions">
+          <button data-action="action1">POST /action1</button>
+          <button data-action="action2">POST /action2</button>
+          <button data-action="action3">POST /action3</button>
+          <button data-action="turnOnSiren2">POST /turnOnSiren2</button>
+          <button id="clearBtn" class="secondary" type="button">Clear Response</button>
+        </div>
+      </section>
+
+      <div id="status" class="full" aria-live="polite"></div>
+
+      <section class="card full">
+        <label for="responseBox">Response</label>
+        <textarea id="responseBox" class="response-box" readonly></textarea>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const statusEl = document.getElementById("status");
+    const responseBox = document.getElementById("responseBox");
+    const actionButtons = Array.from(document.querySelectorAll("button[data-action]"));
+
+    function trimSlashes(url) {
+      return url.replace(/\/+$/, "");
+    }
+
+    function buildUrl(baseUrl, action) {
+      return trimSlashes(baseUrl) + "/" + action.replace(/^\/+/, "");
+    }
+
+    function setBusy(isBusy) {
+      actionButtons.forEach((button) => {
+        button.disabled = isBusy;
+      });
+    }
+
+    function showStatus(message, isError) {
+      statusEl.textContent = message;
+      statusEl.className = isError ? "err" : "ok";
+    }
+
+    async function sendAction(action) {
+      const baseUrl = document.getElementById("baseUrl").value.trim();
+      const headerName = document.getElementById("headerName").value.trim();
+      const headerValue = document.getElementById("headerValue").value;
+      const bodyText = document.getElementById("bodyText").value.trim();
+
+      if (!baseUrl) {
+        showStatus("Enter a base URL first.", true);
+        return;
+      }
+
+      const url = buildUrl(baseUrl, action);
+      const headers = {
+        "Content-Type": "application/json"
+      };
+
+      if (headerName && headerValue) {
+        headers[headerName] = headerValue;
+      }
+
+      let body;
+      if (bodyText) {
+        try {
+          const parsed = JSON.parse(bodyText);
+          body = JSON.stringify(parsed);
+        } catch (error) {
+          showStatus("Invalid JSON in Request Body.", true);
+          return;
+        }
+      }
+
+      setBusy(true);
+      showStatus("Sending request...", false);
+
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers,
+          body
+        });
+
+        const contentType = response.headers.get("content-type") || "";
+        const responseText = await response.text();
+        let formattedBody = responseText;
+
+        if (contentType.includes("application/json") && responseText) {
+          try {
+            formattedBody = JSON.stringify(JSON.parse(responseText), null, 2);
+          } catch (_) {
+            formattedBody = responseText;
+          }
+        }
+
+        const output = [
+          "Time: " + new Date().toISOString(),
+          "Request: POST " + url,
+          "Status: " + response.status + " " + response.statusText,
+          "",
+          "Response Body:",
+          formattedBody || "(empty)"
+        ].join("\n");
+
+        responseBox.value = output;
+        showStatus(response.ok ? "Request completed." : "Request returned an error status.", !response.ok);
+      } catch (error) {
+        responseBox.value = [
+          "Time: " + new Date().toISOString(),
+          "Request: POST " + url,
+          "Error:",
+          String(error)
+        ].join("\n");
+
+        showStatus("Network or CORS error. Check endpoint and Node-RED CORS settings.", true);
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    actionButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        sendAction(button.dataset.action);
+      });
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      responseBox.value = "";
+      showStatus("Response cleared.", false);
+    });
+  </script>
+</body>
+</html>
