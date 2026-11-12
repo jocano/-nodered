@@ -1,0 +1,805 @@
+[
+    {
+        "id": "55e2744a9c63c435",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "3b0c37851869acb9",
+        "type": "tab",
+        "label": "Door Open Alarm",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "4dd1dfab8396e602",
+        "type": "tab",
+        "label": "HTTP Automation Actions",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "afae578c50c1de44",
+        "type": "tab",
+        "label": "Environment ntfy Alarm",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "mosquitto-broker",
+        "type": "mqtt-broker",
+        "name": "Mosquitto",
+        "broker": "mosquitto",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true
+    },
+    {
+        "id": "mosquitto_broker",
+        "type": "mqtt-broker",
+        "name": "Mosquitto",
+        "broker": "mosquitto",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "automation_mosquitto_broker",
+        "type": "mqtt-broker",
+        "name": "Mosquitto",
+        "broker": "mosquitto",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "environment_mosquitto_broker",
+        "type": "mqtt-broker",
+        "name": "Mosquitto",
+        "broker": "mosquitto",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "water-leak-mqtt",
+        "type": "mqtt in",
+        "z": "55e2744a9c63c435",
+        "name": "Water sensor",
+        "topic": "zigbee2mqtt/0xa4c1385764150905",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "mosquitto-broker",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 230,
+        "y": 220,
+        "wires": [
+            [
+                "prepare-ntfy-alert"
+            ]
+        ]
+    },
+    {
+        "id": "prepare-ntfy-alert",
+        "type": "function",
+        "z": "55e2744a9c63c435",
+        "name": "Create alert",
+        "func": "const allowedDevices = [\n    \"0xa4c1385764150905\",\n    \"0xa4c1388f017f7a17\",\n    \"0xa4c13898623020ee\"\n];\n\nconst deviceId = msg.topic.split(\"/\").pop();\n\nif (!allowedDevices.includes(deviceId) || msg.payload.water_leak !== true) {\n    return null;\n}\n\nmsg.headers = {\n    Title: \"Water leak detected\",\n    Priority: \"urgent\",\n    Tags: \"warning,droplet\"\n};\n\nmsg.payload =\n    \"Water leak detected by Zigbee sensor \" +\n    deviceId +\n    \". Battery: \" +\n    msg.payload.battery +\n    \"%.\";\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 510,
+        "y": 300,
+        "wires": [
+            [
+                "send-ntfy"
+            ]
+        ]
+    },
+    {
+        "id": "send-ntfy",
+        "type": "http request",
+        "z": "55e2744a9c63c435",
+        "name": "Send ntfy alert",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://ntfy.sh/pi-jcano-alerts",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 780,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "5565cc7efa605b06",
+        "type": "mqtt in",
+        "z": "55e2744a9c63c435",
+        "name": "Water sensor",
+        "topic": "zigbee2mqtt/0xa4c13898623020ee",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "mosquitto-broker",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 230,
+        "y": 380,
+        "wires": [
+            [
+                "prepare-ntfy-alert"
+            ]
+        ]
+    },
+    {
+        "id": "0d6c402d0d6faa58",
+        "type": "mqtt in",
+        "z": "55e2744a9c63c435",
+        "name": "Water sensor",
+        "topic": "zigbee2mqtt/0xa4c1388f017f7a17",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "mosquitto-broker",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 230,
+        "y": 300,
+        "wires": [
+            [
+                "prepare-ntfy-alert"
+            ]
+        ]
+    },
+    {
+        "id": "8fd99a97c617c932",
+        "type": "mqtt in",
+        "z": "3b0c37851869acb9",
+        "name": "Door contact sensors",
+        "topic": "zigbee2mqtt/+",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "mosquitto_broker",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 460,
+        "wires": [
+            [
+                "f9e8303a06e5e923"
+            ]
+        ]
+    },
+    {
+        "id": "f9e8303a06e5e923",
+        "type": "switch",
+        "z": "3b0c37851869acb9",
+        "name": "Door open?",
+        "property": "payload.contact",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "false",
+                "vt": "bool"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 390,
+        "y": 460,
+        "wires": [
+            [
+                "ca400514c8bdd2d9"
+            ]
+        ]
+    },
+    {
+        "id": "ca400514c8bdd2d9",
+        "type": "function",
+        "z": "3b0c37851869acb9",
+        "name": "Alert and flash light",
+        "func": "const lampTopic = \"zigbee2mqtt/0x00124b0022eaa57b/set\";\nconst deviceId = msg.topic.split(\"/\").pop();\nconst battery = msg.payload.battery;\n\nconst alert = {\n    headers: {\n        Title: \"Door open\",\n        Priority: \"urgent\",\n        Tags: \"warning,door\"\n    },\n    payload: \"Door open: contact sensor \" + deviceId + \". Battery: \" + battery + \"%.\",\n};\n\nfunction lampCommand(state) {\n    return {\n        topic: lampTopic,\n        payload: {\n            state: state\n        }\n    };\n}\n\nfor (let index = 0; index < 5; index += 1) {\n    const cycleStart = index * 4000;\n\n    setTimeout(() => {\n        node.send([null, lampCommand(\"ON\")]);\n    }, cycleStart);\n\n    setTimeout(() => {\n        node.send([null, lampCommand(\"OFF\")]);\n    }, cycleStart + 2000);\n}\n\nsetTimeout(() => {\n    node.send([null, lampCommand(\"OFF\")]);\n}, 20000);\n\nreturn [alert, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 590,
+        "y": 460,
+        "wires": [
+            [
+                "send_startup_ntfy"
+            ],
+            [
+                "11e4d6fdaed2f162"
+            ]
+        ]
+    },
+    {
+        "id": "11e4d6fdaed2f162",
+        "type": "mqtt out",
+        "z": "3b0c37851869acb9",
+        "name": "Flash alarm light",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "mosquitto_broker",
+        "x": 860,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "node_red_startup",
+        "type": "inject",
+        "z": "3b0c37851869acb9",
+        "name": "Node-RED started",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "30",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 250,
+        "y": 260,
+        "wires": [
+            [
+                "create_startup_alert"
+            ]
+        ]
+    },
+    {
+        "id": "create_startup_alert",
+        "type": "function",
+        "z": "3b0c37851869acb9",
+        "name": "Create startup alert",
+        "func": "msg.headers = {\n    Title: \"Node-RED restarted\",\n    Priority: \"default\",\n    Tags: \"white_check_mark,computer\"\n};\nmsg.payload = \"Node-RED flows are running on the Raspberry Pi.\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 260,
+        "wires": [
+            [
+                "send_startup_ntfy"
+            ]
+        ]
+    },
+    {
+        "id": "send_startup_ntfy",
+        "type": "http request",
+        "z": "3b0c37851869acb9",
+        "name": "Send ntfy startup alert",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://ntfy.sh/pi-jcano-alerts",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 840,
+        "y": 300,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9960b53f2530c505",
+        "type": "inject",
+        "z": "3b0c37851869acb9",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "3600",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 230,
+        "y": 360,
+        "wires": [
+            [
+                "45d79cd12230b1b8"
+            ]
+        ]
+    },
+    {
+        "id": "45d79cd12230b1b8",
+        "type": "function",
+        "z": "3b0c37851869acb9",
+        "name": "hearthbeat alert",
+        "func": "msg.headers = {\n    Title: \"Pi automation healthy\",\n    Priority: \"default\",\n    Tags: \"white_check_mark\"\n};\nmsg.payload = \"Node-RED is running and able to reach ntfy.\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 360,
+        "wires": [
+            [
+                "send_startup_ntfy"
+            ]
+        ]
+    },
+    {
+        "id": "f4b07a713686df37",
+        "type": "http in",
+        "z": "4dd1dfab8396e602",
+        "name": "Receive automation action",
+        "url": "/automation/:action",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "",
+        "x": 180,
+        "y": 120,
+        "wires": [
+            [
+                "ce13ebc1c831c15b"
+            ]
+        ]
+    },
+    {
+        "id": "ce13ebc1c831c15b",
+        "type": "function",
+        "z": "4dd1dfab8396e602",
+        "name": "Validate API key",
+        "func": "const providedKey = msg.req.headers[\"x-api-key\"];\nconst expectedKey = env.get(\"AUTOMATION_API_KEY\");\n\nif (!expectedKey) {\n    node.error(\"AUTOMATION_API_KEY is not configured.\", msg);\n    msg.statusCode = 503;\n    msg.payload = {\n        accepted: false,\n        message: \"Automation API is not configured.\"\n    };\n    return [null, msg];\n}\n\nif (providedKey !== expectedKey) {\n    msg.statusCode = 401;\n    msg.payload = {\n        accepted: false,\n        message: \"Unauthorized.\"\n    };\n    return [null, msg];\n}\n\nreturn [msg, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 390,
+        "y": 120,
+        "wires": [
+            [
+                "acdf82711ae59c32"
+            ],
+            [
+                "461531edf6fe4b73"
+            ]
+        ]
+    },
+    {
+        "id": "acdf82711ae59c32",
+        "type": "switch",
+        "z": "4dd1dfab8396e602",
+        "name": "Choose action",
+        "property": "req.params.action",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "siren",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "light-on",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "light-off",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 4,
+        "x": 610,
+        "y": 120,
+        "wires": [
+            [
+                "bdc2139c530f42f7"
+            ],
+            [
+                "9797a9c1397982b5"
+            ],
+            [
+                "73f86af3ddce2d8c"
+            ],
+            [
+                "9e7c6e41a6c2cd64"
+            ]
+        ]
+    },
+    {
+        "id": "bdc2139c530f42f7",
+        "type": "function",
+        "z": "4dd1dfab8396e602",
+        "name": "Sound siren",
+        "func": "const action = msg.req.params.action;\n\nconst command = {\n    topic: \"zigbee2mqtt/0xa4c138c642196a0b/set\",\n    payload: {\n        alarm: true,\n        duration: 10,\n        melody: 5,\n        volume: \"low\"\n    }\n};\n\nconst response = {\n    req: msg.req,\n    res: msg.res,\n    statusCode: 202,\n    payload: {\n        accepted: true,\n        action: action,\n        message: \"Siren command sent.\"\n    }\n};\n\nreturn [command, response];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 810,
+        "y": 60,
+        "wires": [
+            [
+                "3aa822aa4c11c64e"
+            ],
+            [
+                "461531edf6fe4b73"
+            ]
+        ]
+    },
+    {
+        "id": "9797a9c1397982b5",
+        "type": "function",
+        "z": "4dd1dfab8396e602",
+        "name": "Turn light on",
+        "func": "const action = msg.req.params.action;\n\nconst command = {\n    topic: \"zigbee2mqtt/0x00124b0022eaa57b/set\",\n    payload: {\n        state: \"ON\"\n    }\n};\n\nconst response = {\n    req: msg.req,\n    res: msg.res,\n    statusCode: 202,\n    payload: {\n        accepted: true,\n        action: action,\n        message: \"Light ON command sent.\"\n    }\n};\n\nreturn [command, response];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 810,
+        "y": 120,
+        "wires": [
+            [
+                "3aa822aa4c11c64e"
+            ],
+            [
+                "461531edf6fe4b73"
+            ]
+        ]
+    },
+    {
+        "id": "73f86af3ddce2d8c",
+        "type": "function",
+        "z": "4dd1dfab8396e602",
+        "name": "Turn light off",
+        "func": "const action = msg.req.params.action;\n\nconst command = {\n    topic: \"zigbee2mqtt/0x00124b0022eaa57b/set\",\n    payload: {\n        state: \"OFF\"\n    }\n};\n\nconst response = {\n    req: msg.req,\n    res: msg.res,\n    statusCode: 202,\n    payload: {\n        accepted: true,\n        action: action,\n        message: \"Light OFF command sent.\"\n    }\n};\n\nreturn [command, response];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 810,
+        "y": 180,
+        "wires": [
+            [
+                "3aa822aa4c11c64e"
+            ],
+            [
+                "461531edf6fe4b73"
+            ]
+        ]
+    },
+    {
+        "id": "9e7c6e41a6c2cd64",
+        "type": "function",
+        "z": "4dd1dfab8396e602",
+        "name": "Unknown action",
+        "func": "msg.statusCode = 404;\nmsg.payload = {\n    accepted: false,\n    action: msg.req.params.action,\n    message: \"Unknown action. Use siren, light-on, or light-off.\"\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 810,
+        "y": 240,
+        "wires": [
+            [
+                "461531edf6fe4b73"
+            ]
+        ]
+    },
+    {
+        "id": "3aa822aa4c11c64e",
+        "type": "mqtt out",
+        "z": "4dd1dfab8396e602",
+        "name": "Send Zigbee command",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "automation_mosquitto_broker",
+        "x": 1070,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "461531edf6fe4b73",
+        "type": "http response",
+        "z": "4dd1dfab8396e602",
+        "name": "Return action result",
+        "statusCode": "",
+        "headers": {},
+        "x": 1070,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "6bdc49e6c9fda69d",
+        "type": "mqtt in",
+        "z": "afae578c50c1de44",
+        "name": "Temperature / humidity sensor",
+        "topic": "zigbee2mqtt/0x847127fffe166cb3",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "environment_mosquitto_broker",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 180,
+        "y": 120,
+        "wires": [
+            [
+                "8b1b70291d622060",
+                "4c643909a96e0923"
+            ]
+        ]
+    },
+    {
+        "id": "8b1b70291d622060",
+        "type": "function",
+        "z": "afae578c50c1de44",
+        "name": "Store latest values and check threshold",
+        "func": "let payload = msg.payload;\n\nif (typeof payload === \"string\") {\n    try {\n        payload = JSON.parse(payload);\n    } catch (error) {\n        node.error(\"Sensor payload is not valid JSON.\", msg);\n        return [null, null];\n    }\n}\n\nif (!payload || typeof payload !== \"object\") {\n    node.error(\"Sensor payload is not an object.\", msg);\n    return [null, null];\n}\n\nconst reading = flow.get(\"environmentReading\") || {};\n\nif (Number.isFinite(payload.temperature)) {\n    reading.temperature = payload.temperature;\n}\n\nif (Number.isFinite(payload.humidity)) {\n    reading.humidity = payload.humidity;\n}\n\nreading.updatedAt = new Date().toISOString();\nflow.set(\"environmentReading\", reading);\n\nconst temperatureF = reading.temperature * 9 / 5 + 32;\nconst isOverTemperature = temperatureF > 87;\nconst wasOverTemperature = flow.get(\"environmentOverTemperature\") === true;\nflow.set(\"environmentOverTemperature\", isOverTemperature);\n\nnode.status({\n    fill: isOverTemperature ? \"red\" : \"green\",\n    shape: \"dot\",\n    text: `${temperatureF.toFixed(1)} F, ${reading.humidity ?? \"?\"} %`\n});\n\n// Only activate on the transition from 50 F or below to above 90 F.\nif (isOverTemperature) {\n    return [null, {\n        topic: \"zigbee2mqtt/0xa4c138c642196a0b/set\",\n        payload: {\n            alarm: true,\n            duration: 10,\n            melody: 6,\n            volume: \"high\"\n        }\n    }];\n}\n\nreturn [null, null];",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 520,
+        "y": 120,
+        "wires": [
+            [],
+            [
+                "4c643909a96e0923",
+                "b60befe6707b603d"
+            ]
+        ]
+    },
+    {
+        "id": "b60befe6707b603d",
+        "type": "mqtt out",
+        "z": "afae578c50c1de44",
+        "name": "Turn on siren above 90 F",
+        "topic": "",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "environment_mosquitto_broker",
+        "x": 890,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "ca955eac59607ef5",
+        "type": "inject",
+        "z": "afae578c50c1de44",
+        "name": "Every 5 minutes",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "3600",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "10",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 170,
+        "y": 220,
+        "wires": [
+            [
+                "e217c941931532c3"
+            ]
+        ]
+    },
+    {
+        "id": "e217c941931532c3",
+        "type": "function",
+        "z": "afae578c50c1de44",
+        "name": "Build ntfy alarm",
+        "func": "const reading = flow.get(\"environmentReading\");\n\nif (!reading || !Number.isFinite(reading.temperature) || !Number.isFinite(reading.humidity)) {\n    node.status({ fill: \"yellow\", shape: \"ring\", text: \"Waiting for sensor reading\" });\n    return null;\n}\n\nconst temperatureF = reading.temperature * 9 / 5 + 32;\nconst isOverTemperature = temperatureF > 50;\n\nmsg.headers = {\n    \"Title\": isOverTemperature ? \"High temperature alarm\" : \"Environment status\",\n    \"Priority\": isOverTemperature ? \"high\" : \"default\",\n    \"Tags\": isOverTemperature ? \"warning,thermometer\" : \"thermometer,droplet\"\n};\n\nmsg.payload = `Temperature: ${temperatureF.toFixed(1)} F (${reading.temperature.toFixed(1)} C)\\nHumidity: ${reading.humidity} %\\nLast sensor update: ${reading.updatedAt}`;\nnode.status({ fill: \"blue\", shape: \"dot\", text: \"Notification sent\" });\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 450,
+        "y": 220,
+        "wires": [
+            [
+                "f38f2ba9538e919c",
+                "9e18097a9b519c6f"
+            ]
+        ]
+    },
+    {
+        "id": "f38f2ba9538e919c",
+        "type": "http request",
+        "z": "afae578c50c1de44",
+        "name": "Send ntfy environment alarm",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "https://ntfy.sh/pi-jcano-alerts",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "basic",
+        "senderr": false,
+        "headers": [],
+        "x": 700,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4c643909a96e0923",
+        "type": "debug",
+        "z": "afae578c50c1de44",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 840,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "9e18097a9b519c6f",
+        "type": "debug",
+        "z": "afae578c50c1de44",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 660,
+        "y": 280,
+        "wires": []
+    }
+]
